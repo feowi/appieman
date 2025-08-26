@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Appie Man</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      color: yellow;
+
+      /* 🌌 Stars + rainbow overlay */
+      background: 
+        repeating-linear-gradient(
+          45deg,
+          red,
+          orange 50px,
+          yellow 100px,
+          green 150px,
+          blue 200px,
+          purple 250px
+        ),
+        url('https://i.imgur.com/8xL0p.gif');
+      background-repeat: repeat;
+      background-size: 400% 400%, auto;
+      animation: rainbowMove 10s linear infinite;
+
+      cursor: url('images/cursor.cur'), auto;
+    }
+
+    @keyframes rainbowMove {
+      0% { background-position: 0% 50%, 0 0; }
+      50% { background-position: 100% 50%, 0 0; }
+      100% { background-position: 0% 50%, 0 0; }
+    }
+
+    h1 {
+      font-size: 60px;
+      text-shadow: 3px 3px 5px black, 0 0 15px white, 0 0 25px hotpink;
+      margin-top: 30px;
+      animation: blink 1s step-start infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0.5; }
+    }
+
+    .bottom-image {
+      margin-top: 100px;
+      border: 10px ridge gold;
+      box-shadow: 0 0 30px magenta, 0 0 50px cyan;
+    }
+
+    .divider {
+      width: 100%;
+      height: 12px;
+      background: url('images/glitter.gif');
+    }
+
+    /* Falling sparkles canvas */
+    #effectsCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Retro Winamp skin */
+       #winamp {
+      width: 300px;
+      margin: 20px auto;
+      padding: 10px;
+      background: #222;
+      border: 3px ridge #666;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 14px;
+      box-shadow: 0 0 10px #0f0;
+      text-align: left;
+    }
+
+    #winamp h2 {
+      font-size: 16px;
+      margin: 0;
+      text-align: center;
+      color: cyan;
+      text-shadow: 0 0 5px #0ff;
+    }
+
+    #controls {
+      display: flex;
+      justify-content: space-around;
+      margin: 10px 0;
+    }
+
+    button {
+      background: #111;
+      color: #0f0;
+      border: 2px outset #555;
+      font-family: monospace;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #222;
+    }
+
+    #playlist {
+      max-height: 120px;
+      overflow-y: auto;
+      background: #000;
+      border: 1px inset #444;
+      padding: 5px;
+      color: #0f0;
+      font-size: 12px;
+    }
+
+    #playlist div {
+      cursor: pointer;
+      padding: 2px 0;
+    }
+
+    #playlist div.active {
+      background: #0f0;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Falling sparkles + snowflakes canvas -->
+  <canvas id="effectsCanvas"></canvas>
+
+  <!-- Blinking title -->
+  <h1>🌟 Appie Man 🌟</h1>
+
+  <!-- Scrolling marquee -->
+  <marquee behavior="alternate" scrollamount="10">
+    🌈 Welcome to Appie Man’s World 🌈
+  </marquee>
+
+  <!-- Glitter divider -->
+  <div class="divider"></div>
+
+  <!-- Retro Winamp Player -->
+  <div id="winamp">
+    <h2>🎵 Winamp 2.9 🎵</h2>
+    <div id="controls">
+      <div id="progressContainer" style="width: 100%; height: 10px; background: #111; border: 1px inset #555; margin-top: 5px; cursor: pointer;">
+      <div id="progressBar" style="width: 0%; height: 100%; background: #0f0;"></div>
+      <button onclick="prevTrack()">⏮</button>
+      <button onclick="togglePlay()">▶️/⏸</button>
+      <button onclick="nextTrack()">⏭</button>
+    </div>
+    </div>
+    <div id="nowPlaying">Now Playing: -</div>
+    <div id="playlist"></div>
+  </div>
+  <audio id="audioPlayer"></audio>
+
+  <!-- Under Construction -->
+  <p>
+    <img src="images/con.gif" alt="Under Construction">
+  </p>
+
+  <!-- Visitor counter -->
+  <!-- Fake visitor counter -->
+<p style="font-family: monospace; color: lime; text-shadow: 1px 1px 2px black; font-size: 20px;">
+  Visitors: <span id="visitorCounter">042</span>
+</p>
+
+<script>
+  // Initialize counter from localStorage (so it persists per browser)
+  let count = localStorage.getItem('visitorCount') 
+              ? parseInt(localStorage.getItem('visitorCount')) 
+              : 42; // starting value
+
+  count++; // increment on page load
+  localStorage.setItem('visitorCount', count);
+
+  // Display as 3-digit number with leading zeros
+  document.getElementById('visitorCounter').textContent = count.toString().padStart(3,'0');
+</script>
+
+
+  <!-- Guestbook button -->
+  <p>
+    <a href="#"><img src="images/signbook.gif" alt="Sign my Guestbook"></a>
+  </p>
+
+  <!-- Bottom image (replace with your own) -->
+  <div>
+    <img src="images/appieman.png" alt="Appie Man" class="bottom-image" width="400">
+  </div>
+
+  <!-- Glitter divider again -->
+  <div class="divider"></div>
+
+  <script>
+    // 🎇 Falling sparkles + snowflakes
+    const canvas = document.getElementById("effectsCanvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function createParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: -10,
+        size: Math.random() * 4 + 2,
+        speed: Math.random() * 2 + 1,
+        type: Math.random() > 0.5 ? "snow" : "sparkle"
+      };
+    }
+
+    function drawParticle(p) {
+      if (p.type === "snow") {
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = "yellow";
+        ctx.shadowColor = "gold";
+        ctx.shadowBlur = 10;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (particles.length < 150) {
+        particles.push(createParticle());
+      }
+
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        p.y += p.speed;
+        if (p.y > canvas.height) {
+          particles[i] = createParticle();
+          particles[i].y = -10;
+        }
+        drawParticle(p);
+      }
+
+      requestAnimationFrame(update);
+    }
+    update();
+
+    // 🎵 Fake Winamp playlist
+    const playlist = [
+      { title: "Klinkt als weekend!", src: "music/appie1.mp3" },
+      { title: "Albert Heijn Deuntje", src: "music/appie2.mp3" },
+    ];
+
+    let currentTrack = 0;
+    const audio = document.getElementById("audioPlayer");
+    const nowPlaying = document.getElementById("nowPlaying");
+    const playlistDiv = document.getElementById("playlist");
+
+    playlist.forEach((track, index) => {
+      let div = document.createElement("div");
+      div.textContent = (index+1) + ". " + track.title;
+      div.onclick = () => loadTrack(index, true);
+      playlistDiv.appendChild(div);
+    });
+
+    function loadTrack(index, play = false) {
+      currentTrack = index;
+      audio.src = playlist[index].src;
+      nowPlaying.textContent = "Now Playing: " + playlist[index].title;
+      [...playlistDiv.children].forEach(c => c.classList.remove("active"));
+      playlistDiv.children[index].classList.add("active");
+      if (play) audio.play();
+    }
+
+    function togglePlay() {
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    function nextTrack() {
+      currentTrack = (currentTrack + 1) % playlist.length;
+      loadTrack(currentTrack, true);
+    }
+
+    function prevTrack() {
+      currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+      loadTrack(currentTrack, true);
+    }
+
+    audio.onended = nextTrack;
+    loadTrack(0, false);
+
+    const progressBar = document.getElementById("progressBar");
+const progressContainer = document.getElementById("progressContainer");
+
+// Update de progress bar
+audio.ontimeupdate = () => {
+  if(audio.duration){
+    let percent = (audio.currentTime / audio.duration) * 100;
+    progressBar.style.width = percent + "%";
+  }
+};
+
+// Klikbaar voor scrubben
+progressContainer.onclick = (e) => {
+  let rect = progressContainer.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  let percent = x / rect.width;
+  audio.currentTime = percent * audio.duration;
+};
+
+const audio = document.getElementById("audioPlayer");
+const progressBar = document.getElementById("progressBar");
+const progressContainer = document.getElementById("progressContainer");
+const playButton = document.querySelector("#controls button:nth-child(2)"); // play/pause knop
+const nowPlaying = document.getElementById("nowPlaying");
+
+// Update de progress bar
+audio.ontimeupdate = () => {
+  if(audio.duration){
+    let percent = (audio.currentTime / audio.duration) * 100;
+    progressBar.style.width = percent + "%";
+  }
+};
+
+// Klikbaar voor scrubbben
+progressContainer.onclick = (e) => {
+  let rect = progressContainer.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  let percent = x / rect.width;
+  audio.currentTime = percent * audio.duration;
+};
+
+// Play/pauze knop
+function togglePlay() {
+  if(audio.paused){
+    audio.play();
+    playButton.textContent = "⏸";
+  } else {
+    audio.pause();
+    playButton.textContent = "▶️";
+  }
+}
+
+// Track laden
+function loadTrack(index, play=false){
+  currentTrack = index;
+  audio.src = playlist[index].src;
+  nowPlaying.textContent = "Now Playing: " + playlist[index].title;
+  [...playlistDiv.children].forEach(c=>c.classList.remove("active"));
+  playlistDiv.children[index].classList.add("active");
+  if(play){
+    audio.play();
+    playButton.textContent = "⏸";
+  } else {
+    playButton.textContent = "▶️";
+  }
+}
+
+// Next/prev tracks
+function nextTrack(){
+  currentTrack = (currentTrack + 1) % playlist.length;
+  loadTrack(currentTrack, true);
+}
+
+function prevTrack(){
+  currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+  loadTrack(currentTrack, true);
+}
+
+audio.onended = nextTrack;
+
+// Zorg dat icoon goed staat bij track change
+function loadTrack(index, play = false) {
+  currentTrack = index;
+  audio.src = playlist[index].src;
+  nowPlaying.textContent = "Now Playing: " + playlist[index].title;
+  [...playlistDiv.children].forEach(c => c.classList.remove("active"));
+  playlistDiv.children[index].classList.add("active");
+  if(play){
+    audio.play();
+    playButton.textContent = "⏸";
+  } else {
+    playButton.textContent = "▶️";
+  }
+}
+  </script>
+</body>
+</html>
