@@ -1,3 +1,5 @@
+Heb toch maar zonder midi gedaan, Kan je hiervan een bar maken dat hij laat zien hoelang de MP3 duurt? en een echte play/pause knop?
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -150,12 +152,9 @@
   <div id="winamp">
     <h2>🎵 Winamp 2.9 🎵</h2>
     <div id="controls">
-      <div id="progressContainer" style="width: 100%; height: 10px; background: #111; border: 1px inset #555; margin-top: 5px; cursor: pointer;">
-      <div id="progressBar" style="width: 0%; height: 100%; background: #0f0;"></div>
       <button onclick="prevTrack()">⏮</button>
       <button onclick="togglePlay()">▶️/⏸</button>
       <button onclick="nextTrack()">⏭</button>
-    </div>
     </div>
     <div id="nowPlaying">Now Playing: -</div>
     <div id="playlist"></div>
@@ -305,101 +304,6 @@
 
     audio.onended = nextTrack;
     loadTrack(0, false);
-
-    const progressBar = document.getElementById("progressBar");
-const progressContainer = document.getElementById("progressContainer");
-
-// Update de progress bar
-audio.ontimeupdate = () => {
-  if(audio.duration){
-    let percent = (audio.currentTime / audio.duration) * 100;
-    progressBar.style.width = percent + "%";
-  }
-};
-
-// Klikbaar voor scrubben
-progressContainer.onclick = (e) => {
-  let rect = progressContainer.getBoundingClientRect();
-  let x = e.clientX - rect.left;
-  let percent = x / rect.width;
-  audio.currentTime = percent * audio.duration;
-};
-
-const audio = document.getElementById("audioPlayer");
-const progressBar = document.getElementById("progressBar");
-const progressContainer = document.getElementById("progressContainer");
-const playButton = document.querySelector("#controls button:nth-child(2)"); // play/pause knop
-const nowPlaying = document.getElementById("nowPlaying");
-
-// Update de progress bar
-audio.ontimeupdate = () => {
-  if(audio.duration){
-    let percent = (audio.currentTime / audio.duration) * 100;
-    progressBar.style.width = percent + "%";
-  }
-};
-
-// Klikbaar voor scrubbben
-progressContainer.onclick = (e) => {
-  let rect = progressContainer.getBoundingClientRect();
-  let x = e.clientX - rect.left;
-  let percent = x / rect.width;
-  audio.currentTime = percent * audio.duration;
-};
-
-// Play/pauze knop
-function togglePlay() {
-  if(audio.paused){
-    audio.play();
-    playButton.textContent = "⏸";
-  } else {
-    audio.pause();
-    playButton.textContent = "▶️";
-  }
-}
-
-// Track laden
-function loadTrack(index, play=false){
-  currentTrack = index;
-  audio.src = playlist[index].src;
-  nowPlaying.textContent = "Now Playing: " + playlist[index].title;
-  [...playlistDiv.children].forEach(c=>c.classList.remove("active"));
-  playlistDiv.children[index].classList.add("active");
-  if(play){
-    audio.play();
-    playButton.textContent = "⏸";
-  } else {
-    playButton.textContent = "▶️";
-  }
-}
-
-// Next/prev tracks
-function nextTrack(){
-  currentTrack = (currentTrack + 1) % playlist.length;
-  loadTrack(currentTrack, true);
-}
-
-function prevTrack(){
-  currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
-  loadTrack(currentTrack, true);
-}
-
-audio.onended = nextTrack;
-
-// Zorg dat icoon goed staat bij track change
-function loadTrack(index, play = false) {
-  currentTrack = index;
-  audio.src = playlist[index].src;
-  nowPlaying.textContent = "Now Playing: " + playlist[index].title;
-  [...playlistDiv.children].forEach(c => c.classList.remove("active"));
-  playlistDiv.children[index].classList.add("active");
-  if(play){
-    audio.play();
-    playButton.textContent = "⏸";
-  } else {
-    playButton.textContent = "▶️";
-  }
-}
   </script>
 </body>
 </html>
